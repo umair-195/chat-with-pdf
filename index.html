@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Question Answering System</title>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Favicon -->
+    <link rel="icon" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/svgs/solid/question-circle.svg" type="image/svg+xml">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-image: url('https://images.unsplash.com/photo-1593642634367-d91a135587b5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwyNjUyOXwwfDF8c2VhcmNofDJ8fGFpfGVufDB8fHx8MTY5Mzk4NjcwMQ&ixlib=rb-1.2.1&q=80&w=889');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #007BFF;
+        }
+        textarea {
+            width: 100%;
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        input[type="text"] {
+            width: calc(100% - 22px);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+        }
+        button {
+            background-color: #007BFF;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        h2 {
+            margin-top: 20px;
+        }
+        p {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ask a Question</h1>
+        <form id="qa-form">
+            <textarea id="context" placeholder="Enter your context here..." rows="10"></textarea><br><br>
+            <input type="text" id="question" placeholder="Enter your question here..."><br><br>
+            <input type="file" id="pdf-upload" accept=".pdf"><br><br>
+            <button type="button" onclick="askQuestion()">Submit</button>
+        </form>
+        <h2>Answer:</h2>
+        <p id="answer">No answer found</p>
+    </div>
+
+    <script>
+        async function askQuestion() {
+            const context = document.getElementById('context').value;
+            const question = document.getElementById('question').value;
+            const pdfUpload = document.getElementById('pdf-upload').files[0];
+            
+            let pdfPath = "";
+            if (pdfUpload) {
+                const formData = new FormData();
+                formData.append("file", pdfUpload);
+                const response = await fetch('/upload-pdf', {
+                    method: 'POST',
+                    body: formData,
+                });
+                const data = await response.json();
+                pdfPath = data.filepath;
+            }
+
+            const response = await fetch('/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ question: question, context: context, pdf_path: pdfPath }),
+            });
+
+            const data = await response.json();
+            document.getElementById('answer').innerText = data.answer || 'No answer found';
+        }
+    </script>
+</body>
+</html>
